@@ -1,15 +1,31 @@
 // const { expect } = require("chai");
 
-// describe("Token contract", function () {
+// const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+// describe.only("Token contract", function () {
 //   it("Deployment should assign the total supply of tokens to the owner", async function () {
 //     const [owner] = await ethers.getSigners();
 
-//     const Token = await ethers.getContractFactory("Token");
+//     const Token = await ethers.getContractFactory("Timestamp");
 
 //     const hardhatToken = await Token.deploy();
 
-//     const ownerBalance = await hardhatToken.balanceOf(owner.address);
-//     expect(await hardhatToken.totalSupply()).to.equal(ownerBalance);
+//     hardhatToken.start();
+
+//     wait(20000);
+
+//     hardhatToken.end();
+
+//     console.log(await hardhatToken.startDateTime());
+
+//     const diff = await hardhatToken.getTimeDiff();
+    
+//     console.log(diff.toNumber());
+//     // const time = diff.toNumber();
+//     // const timeInSeconds = Math.floor(time/1000);
+//     // console.log(timeInSeconds);
+//     // const d = new date(timeInSeconds);
+//     // expect(await hardhatToken.getTimeDif()).to.equal(ownerBalance);
 //   });
 // });
 
