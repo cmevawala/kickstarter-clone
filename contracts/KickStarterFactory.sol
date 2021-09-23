@@ -6,22 +6,20 @@
 pragma solidity ^0.8.7;
 
 contract KickStarterFactory {
-    // address[] carAssets;
-
-    // function createChildContract(string memory brand, string memory model) public payable {
-    //     // insert check if the sent ether is enough to cover the car asset ...
-    //     address newCarAsset = address(new CarAsset(brand, model, msg.sender));
-    //     carAssets.push(address(newCarAsset));
-    // }
-
-    // function getDeployedChildContracts() public view returns (address[] memory) {
-    //     return carAssets;
-    // }
-
+   
     address public owner;
     uint constant minimumContribution = 0.01 ether;
 
     address[] projectContracts;
+
+
+    modifier restricted(address _projectAddress) {
+        Project projectContract = Project(_projectAddress);
+
+        require(msg.sender == projectContract.owner(), "Error! You are not the owner of the current project");
+        _;
+    }
+
 
     function createProject(string memory name, uint amount) public {
         address newProjectAddress = address(new Project(name, amount, msg.sender));
@@ -32,38 +30,102 @@ contract KickStarterFactory {
         return projectContracts;
     }
 
-    function getDeployedProject(address _projectAddress) public pure returns (Project) {
+    function getDeployedProject(address _projectAddress) public view restricted(_projectAddress) returns (Project) {
         return Project(_projectAddress);
     }
     
     function contribute(address _projectAddress) public payable returns (string memory) {
         // TODO: Hack Reentrace
-        address _to = msg.sender;
 
-        Project projectContact = Project(_projectAddress);
+        Project projectContract = Project(_projectAddress);
 
         // Validate if the contribution amount is less than minimum
         require(msg.value >= minimumContribution, 'Contribution amount less than Minimum');
         
         // Validate if the goal is already achieved or not
-        require(projectContact.total() < projectContact.goal(), 'Goal Achieved! No more funds are accepted.');
+        require(projectContract.total() < projectContract.goal(), 'Goal Achieved! No more funds are accepted.');
 
         uint incommingContribution = msg.value;
-        if (projectContact.total() + incommingContribution > projectContact.goal()) {  // 98 + 5 > 100
-            incommingContribution = projectContact.goal() - projectContact.total();    // 100 - 98 = 2
+        if (projectContract.total() + incommingContribution > projectContract.goal()) {  // 98 + 5 > 100
+            incommingContribution = projectContract.goal() - projectContract.total();    // 100 - 98 = 2
             
             // Send back to contributer/sender : msg.value - incommingContribution;
             uint remainingAmount = msg.value - incommingContribution;
-            (bool sent, bytes memory data) = _to.call{value: remainingAmount}("");
+            (bool sent, bytes memory data) = msg.sender.call{value: remainingAmount}("");
             require(sent, "Failed to send Ether");
         }
 
-        projectContact.addContribution(msg.sender, msg.value);
+        projectContract.addContribution(msg.sender, msg.value);
     }
 
-    function getTotal(address _projectAddress) public view returns (uint) {
-        Project projectContact = Project(_projectAddress);
-        return projectContact.total();
+    // function getTotal(address _projectAddress) public view returns (uint) {
+    //     Project projectContract = Project(_projectAddress);
+    //     return projectContract.total();
+    // }
+
+    // function getGoal(address _projectAddress) public view returns (uint) {
+    //     Project projectContract = Project(_projectAddress);
+    //     return projectContract.goal();
+    // }
+
+    function withdraw(address _projectAddress, uint8 percentage) public payable restricted(_projectAddress) {
+        Project projectContract = Project(_projectAddress);
+
+        // Validate if the project is archieve
+        require(!projectContract.archive(), 'Project is archieved');
+
+        // Invalid Percentage Value
+        require(percentage <= 100, 'Invalid Percentage Value');
+
+        // // validate owner 
+        // require(projectContract.owner() == msg.sender, 'Error! You are not the owner of the current project');
+
+        // Validate if the goal is met
+        require(projectContract.total() == projectContract.goal(), 'Error! Project Goal has not been met');
+
+        // Validate is 30 days completed and goal is not met
+        // require(block.timestamp <= projectContract.created() + 30 days &&  projectIdToContributors[projectId].amount < projectIdToProject[projectId].goal, 'Error! You did not met goal within 30 days');
+
+        // Calculate amount to withdraw
+        uint amountToWithdraw = (projectContract.total() * percentage) / 100;
+
+        // Trying to withdraw amount more than the available amount
+        require(amountToWithdraw < projectContract.total(), 'Insufficient Funds.');
+
+        // Reduce the balance from total contribution
+        projectContract.reduceContribution(amountToWithdraw);
+
+        // Send the withdrawable amount to creator
+        (bool sent, bytes memory data) = msg.sender.call{ value: amountToWithdraw }("");
+        require(sent, "Withdraw Failed : Failed to send Ether");
+    }
+
+    function cancelProject(address _projectAddress) public payable restricted(_projectAddress) {
+        Project projectContract = Project(_projectAddress);
+
+        if (block.timestamp < projectContract.created() + 30 days) {
+            projectContract.close();
+        }
+    }
+
+    function archieveProjects() public payable {
+
+        // Validate is a contract owner
+        require(owner == msg.sender, 'Restricted Access');
+
+        for (uint i; i < projectContracts.length; i++) {
+
+            Project projectContract = Project(projectContracts[i]);
+
+            // Check whether the project is expired
+            if (projectContract.isExpired()) {
+                projectContract.close();
+
+                delete projectContracts[i];
+            }
+
+        }
+        
     }
 
 }
@@ -76,20 +138,20 @@ contract Project {
         uint amount;
     }
 
-    uint id;
+    address id;
     string public name;
     uint public goal;
-    bool archive;
-    uint created;
-    address owner;
+    bool public archive;
+    uint public created;
+    address public owner;
     uint public total;
-    mapping(address => uint) public ownerToContribution;
+    ProjectContribution[] contributors; 
 
 
     constructor(string memory _name, uint _goal, address _owner) {
-        id = 1; // random
+        id = _owner;
         name = _name;
-        goal = _goal;
+        goal = _goal * 1 ether;
         archive = false;
         created = block.timestamp;
         owner = _owner;
@@ -97,20 +159,33 @@ contract Project {
     }
 
     function addContribution(address _from, uint _amount) public {
-        ownerToContribution[_from] += _amount;
+        contributors.push(ProjectContribution({
+            from: _from,
+            amount: _amount
+        }));
+        
         total += _amount;
     }
+
+    function reduceContribution(uint _amount) public {
+        total = total - _amount;
+    }
+
+    function close() public {
+        archive = true;
+        total = 0;
+
+        // Return the money back to contributors
+        for (uint i = 0; i < contributors.length; i++) {
+            address addr = contributors[i].from;
+            (bool sent, bytes memory data) = addr.call{ value: contributors[i].amount }("");
+            require(sent, "Failed to send Ether to the contributors");
+        }
+
+        delete contributors;
+    }
+
+    function isExpired() public view returns (bool) {
+        return block.timestamp > created + 30 days;
+    }
 }
-
-
-// contract CarAsset {
-//     string public brand;
-//     string public model;
-//     address public owner;
-
-//     constructor( string memory _brand, string memory _model, address _owner ) {
-//         brand = _brand;
-//         model = _model;
-//         owner = _owner;
-//     }
-// }
