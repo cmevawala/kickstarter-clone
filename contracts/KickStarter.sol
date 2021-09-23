@@ -26,17 +26,15 @@ contract KickStarter {
         uint amount;
     }
 
+    event ProjectCreated(string message);
+
     address public owner;
     uint constant minimumContribution = 0.01 ether;
 
-    uint[] projectIds;
-
     mapping(uint => Project) public projectIdToProject;
-    
-    mapping(uint => ProjectContribution[]) public projectIdToContribution;
+    mapping(uint => ProjectContribution[]) public projectIdToContributors;
     mapping(uint => uint) public projectIdToTotalContribution;
 
-    mapping(address => uint) public ownerToProjectId;
     mapping(string => uint) public projectNameToId;
 
 
@@ -58,9 +56,8 @@ contract KickStarter {
 
         projectIdToProject[newProject.id] = newProject;
         projectNameToId[newProject.name] = newProject.id;
-        ownerToProjectId[msg.sender] = newProject.id;
-        
-        // projectIds.push(newProject.id);
+
+       emit ProjectCreated("Project Created");
     }
 
     function getProject(string memory name) public view returns (uint) {
@@ -100,18 +97,22 @@ contract KickStarter {
         });
 
         // // Update the amount contributed by sender
-        // projectIdToContribution[projectId].amount += incommingContribution;
+        // projectIdToContributors[projectId].amount += incommingContribution;
 
         // // Update the address of contributor/sender
-        // projectIdToContribution[projectId].from = msg.sender;
+        // projectIdToContributors[projectId].from = msg.sender;
 
-        projectIdToContribution[projectId].push(projectContribution);
+        projectIdToContributors[projectId].push(projectContribution);
         projectIdToTotalContribution[projectId] += incommingContribution;
     }
 
     function withdraw(uint projectId, uint8 percentage) public payable {
+
         Project memory project = projectIdToProject[projectId];
         address _to = msg.sender;
+
+        // Validate if the project is archieve
+        // TODO
 
         // Invalid Percentage Value
         require(percentage <= 100, 'Invalid Percentage Value');
@@ -123,7 +124,7 @@ contract KickStarter {
         require(projectIdToTotalContribution[projectId] == projectIdToProject[projectId].goal, 'Error! Project Goal has not been met');
 
         // Validate is 30 days completed and goal is not met
-        // require(block.timestamp <= project.created + 10 seconds &&  projectIdToContribution[projectId].amount < projectIdToProject[projectId].goal, 'Error! You did not met goal within 30 days');
+        // require(block.timestamp <= project.created + 10 seconds &&  projectIdToContributors[projectId].amount < projectIdToProject[projectId].goal, 'Error! You did not met goal within 30 days');
 
         // Calculate amount to withdraw
         uint amountToWithdraw = (projectIdToTotalContribution[projectId] * percentage) / 100;
@@ -136,18 +137,37 @@ contract KickStarter {
 
         // Send the withdrawable amount to creator
         (bool sent, bytes memory data) = _to.call{ value: amountToWithdraw }("");
-        require(sent, "Failed to send Ether");
+        require(sent, "Withdraw Failed : Failed to send Ether");
     }
 
-    function cancelProject() public {
-        address _to = msg.sender;
+    function cancelProject(uint projectId) public payable {
 
-        Project storage project = projectIdToProject[ownerToProjectId[msg.sender]];
+        // Get Owner Project Details
+        Project storage project = projectIdToProject[projectId];
 
+        // validate owner 
+        require(project.owner == msg.sender, 'Cancellation Error! You are not the owner of the current project');
 
+        // Get Contributors of the Project
+        ProjectContribution[] storage projectContributors = projectIdToContributors[project.id];
 
+        projectIdToTotalContribution[project.id] = 0;
+
+        // Return the money back to contributors
+        for (uint i = 0; i < projectContributors.length; i++) {
+            (bool sent, bytes memory data) = projectContributors[i].from.call{ value: projectContributors[i].amount }("");
+            require(sent, "Failed to send Ether to the contributors");
+        }
+        
         project.archive = true;
+    }
 
+
+    function archieveProjects() public payable {
+
+        // Validate owner
+        require(owner == msg.sender, 'Restricted Access');
+        
     }
 
     /******************************  public functions ****************************/

@@ -1,4 +1,4 @@
-const { expect, util } = require('chai');
+const { expect } = require('chai');
 const { BigNumber } = require('ethers');
 const { formatEther, parseEther } = require('ethers/lib/utils');
 
@@ -35,6 +35,8 @@ describe('KickStarter contract contribution', function () {
   let overrides;
   let balance;
   let totalContractBalance;
+  let KickStarterContract;
+  let tx
 
   // `beforeEach` will run before each test, re-deploying the contract every
   // time. It receives a callback, which can be async.
@@ -44,29 +46,22 @@ describe('KickStarter contract contribution', function () {
 
     // To deploy our contract, we just have to call Token.deploy() and await
     // for it to be deployed(), which happens once its transaction has been mined.
-    const KickStarterContract = await ethers.getContractFactory('KickStarter');
+    KickStarterContract = await ethers.getContractFactory('KickStarter');
     kickStarter = await KickStarterContract.deploy();
 
     // Creating a project
     await kickStarter.createProject('Project 1', parseEther('100'));
-
+    
     // balance = await owner.getBalance();
     // console.log('Owner: ' + formatEther(balance));
   });
 
-  // it('should check whether new project has been created or not', async function () {
-  //   projectId = await kickStarter.getProject('Project 1');
-  //   projectId = projectId.toBigInt();
+  it('should check whether new project has been created or not', async function () {
 
-  //   console.log(await kickStarter.ownerToProject(projectId));
+    expect(await kickStarter.createProject('Project 1', parseEther('100'))).
+      to.emit(kickStarter, 'ProjectCreated').withArgs("Project Created");
 
-  //   const balance = await addr1.getBalance();
-  //   console.log(formatEther(balance));
-
-  //   await kickStarter.connect(addr1, { 
-  //       value: 1000
-  //   }).contribute(projectIndex);
-  // });
+  });
 
   it('should contribute 100 ETH to the project 1', async function () {
     projectId = await kickStarter.getProject('Project 1');
@@ -138,7 +133,6 @@ describe('KickStarter contract contribution', function () {
 
       // balance = await addr1.getBalance();
       // console.log('Address1: ' + formatEther(balance));
-
 
 
       // balance = await owner.getBalance();
