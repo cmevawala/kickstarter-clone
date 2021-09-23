@@ -102,6 +102,41 @@
       "artifacts": [
         "Timestamp"
       ]
+    },
+    "/Users/Chitrang.Mevawala/Documents/optilistic/kickstarter-clone/contracts/KickStarterFactory.sol": {
+      "lastModificationDate": 1632410856853,
+      "contentHash": "24bc793b8d01d589ae969d98d1b88eb1",
+      "sourceName": "contracts/KickStarterFactory.sol",
+      "solcConfig": {
+        "version": "0.8.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.7"
+      ],
+      "artifacts": [
+        "KickStarterFactory",
+        "Project"
+      ]
     }
   }
 }
