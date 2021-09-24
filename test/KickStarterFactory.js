@@ -2,8 +2,6 @@ const { expect } = require('chai');
 const { BigNumber } = require('ethers');
 const { formatEther, parseEther } = require('ethers/lib/utils');
 
-const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
-
 describe.only('KickStarterFactory contract', function () {
   let kickStarter;
   let owner;
@@ -29,113 +27,110 @@ describe.only('KickStarterFactory Project Management', function () {
   let addr1;
   let addr2;
   let addr3;
-  let projectId;
-  let project;
-  let projectContribution;
-  let contractWithSigner;
+
   let overrides;
   let balance;
   let totalContractBalance;
-  let KickStarterContract;
+
+  let KickStarter;
+  let contractWithSigner;
+  let projectAddress;
   let tx;
+  let txReceipt;
+
+  let Project;
+  let project;
 
   beforeEach(async function () {
     [owner, addr1, addr2, addr3] = await ethers.getSigners();
 
-    KickStarterContract = await ethers.getContractFactory('KickStarterFactory');
-    kickStarter = await KickStarterContract.deploy();
+    KickStarter = await ethers.getContractFactory('KickStarterFactory');
+    kickStarter = await KickStarter.deploy();
 
-    await kickStarter.createProject('Project 1', parseEther('100'));
-
-    balance = await owner.getBalance();
-    console.log('Owner: ' + formatEther(balance));
+    tx = await kickStarter.createProject('Project 1', parseEther('100'));
   });
 
   it('should check whether new project has been created or not', async function () {
-    // expect(await kickStarter.createProject('Project 1', parseEther('100'))).
-    //   to.emit(kickStarter, 'ProjectCreated');
-    expect(await kickStarter.getDeployedProjectsLength()).to.equal(1);
+    txReceipt = await tx.wait();
+    projectAddress = txReceipt.events[0].args[0];
+
+    Project = await ethers.getContractFactory('Project');
+    project = await Project.attach(projectAddress);
+
+    expect(projectAddress).not.undefined;
+
+    expect(
+      await kickStarter.createProject('Project 1', parseEther('100'))
+    ).to.emit(kickStarter, 'ProjectCreated');
   });
 
   it('should contribute 100 ETH to the project 1', async function () {
-    console.log(await kickStarter.getDeployedProjects());
+    overrides = { gasLimit: 200000, value: parseEther('90') };
+    await project.connect(addr1).contribute(overrides);
 
-    // let balance = await addr1.getBalance();
-    // console.log(formatEther(balance));
+    overrides = { ...overrides, value: ethers.utils.parseEther('10') };
+    await project.connect(addr2).contribute(overrides);
 
-    contractWithSigner = kickStarter.connect(addr1);
-    overrides = {
-      gasLimit: 200000,
-      value: parseEther('98'),
-    };
-    await contractWithSigner.contribute(projectId, overrides);
-
-    // project = await kickStarter.ownerToProject(projectId);
-    // console.log(formatEther(project.goal));
-
-    // balance = await addr1.getBalance();
-    // console.log(formatEther(balance));
-
-    // balance = await addr2.getBalance();
-    // console.log(formatEther(balance));
-
-    contractWithSigner = kickStarter.connect(addr2);
-    overrides = {
-      gasLimit: 200000,
-      value: ethers.utils.parseEther('5'),
-    };
-    await contractWithSigner.contribute(projectId, overrides);
-
-    // project = await kickStarter.ownerToProject(projectId);
-    // console.log(formatEther(project.goal));
-    // console.log(project.archive);
-
-    projectTotalContribution = await kickStarter.projectIdToTotalContribution(projectId);
-    // console.log(formatEther(projectTotalContribution));
-
-    // balance = await addr2.getBalance();
-    // console.log(formatEther(balance));
-
-    // totalContractBalance = await kickStarter.getBalance();
-    // console.log(formatEther(balance));
-
-    expect(formatEther(projectTotalContribution)).to.equal("100.0");
-    expect(formatEther(project.goal)).to.equal("100.0");
+    expect(formatEther(await project.total())).to.equal('100.0');
   });
 
-  // it('should withdraw 10% of ETH from the project 1', async function () {
-  //     projectId = await kickStarter.getProject('Project 1');
-  //     projectId = projectId.toBigInt();
-  //     project = await kickStarter.projectIdToProject(projectId);
+  it('should withdraw 10% of ETH from the project 1', async function () {
 
-  //     // balance = await kickStarter.getBalance();
-  //     // console.log('Contract: ' + formatEther(balance));
+    await project.connect(owner).withdraw(10);
+    expect(formatEther(await project.total())).to.equal('90.0');
+  });
 
-  //     contractWithSigner = kickStarter.connect(addr1);
-  //     overrides = {
-  //       gasLimit: 300000,
-  //       value: parseEther('100'),
-  //     };
-  //     await contractWithSigner.contribute(projectId, overrides);
+  it('should create and close the project 2', async function () {
 
-  //     // totalContractBalance = await kickStarter.getBalance();
-  //     // console.log('Contract: ' + formatEther(totalContractBalance));
+      tx = await kickStarter.createProject('Project 2', parseEther('200'));
 
-  //     // balance = await addr1.getBalance();
-  //     // console.log('Address1: ' + formatEther(balance));
+      txReceipt = await tx.wait();
+      projectAddress = txReceipt.events[0].args[0];
 
-  //     // balance = await owner.getBalance();
-  //     // console.log('Owner: ' + formatEther(balance));
+      Project = await ethers.getContractFactory('Project');
+      project = await Project.attach(projectAddress);
 
-  //     contractWithSigner = kickStarter.connect(owner);
-  //     await contractWithSigner.withdraw(projectId, 10);
+      overrides = { gasLimit: 200000, value: parseEther('100')};
+      await project.connect(addr3).contribute(overrides);
 
-  //     // balance = await owner.getBalance();
-  //     // console.log('Owner: ' + formatEther(balance));
+      // const date = new Date();
+      // date.setDate(date.getDate() + 1);
+      // const thirtyDaysFromNow = date.getTime();
 
-  //     totalContractBalance = await kickStarter.getBalance();
-  //     // console.log('Contract: ' + formatEther(totalContractBalance));
+      // await network.provider.send("evm_setNextBlockTimestamp", [
+      //   thirtyDaysFromNow,
+      // ]);
+      // await ethers.provider.send("evm_mine");
 
-  //     expect(formatEther(totalContractBalance)).to.equal("90.0");
-  // });
+      await project.connect(owner).close();
+      expect(await project.archive()).true;
+  });
+
+  it('should fail the project 3', async function () {
+
+      tx = await kickStarter.createProject('Project 3', parseEther('300'));
+
+      txReceipt = await tx.wait();
+      projectAddress = txReceipt.events[0].args[0];
+
+      Project = await ethers.getContractFactory('Project');
+      project = await Project.attach(projectAddress);
+
+      overrides = { gasLimit: 200000, value: parseEther('100')};
+      await project.connect(addr3).contribute(overrides);
+
+
+      const date = new Date();
+      date.setDate(date.getDate() + 1);
+      const thirtyDaysFromNow = date.getTime();
+
+      await network.provider.send("evm_setNextBlockTimestamp", [
+        thirtyDaysFromNow,
+      ]);
+      await ethers.provider.send("evm_mine");
+      
+
+      await project.connect(owner).fail();
+      expect(await project.archive()).true;
+  });
 });

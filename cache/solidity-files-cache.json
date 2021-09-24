@@ -1,111 +1,9 @@
 {
   "_format": "hh-sol-cache-2",
   "files": {
-    "/Users/Chitrang.Mevawala/Documents/optilistic/kickstarter-clone/contracts/KickStarter.sol": {
-      "lastModificationDate": 1632403709369,
-      "contentHash": "9a0c5198dfef3c47417cd827e626a790",
-      "sourceName": "contracts/KickStarter.sol",
-      "solcConfig": {
-        "version": "0.8.7",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.7"
-      ],
-      "artifacts": [
-        "KickStarter"
-      ]
-    },
-    "/Users/Chitrang.Mevawala/Documents/optilistic/kickstarter-clone/contracts/Token.sol": {
-      "lastModificationDate": 1632244912622,
-      "contentHash": "489abe1b96276d118d560eefbc89d931",
-      "sourceName": "contracts/Token.sol",
-      "solcConfig": {
-        "version": "0.8.7",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.7"
-      ],
-      "artifacts": [
-        "Token"
-      ]
-    },
-    "/Users/Chitrang.Mevawala/Documents/optilistic/kickstarter-clone/contracts/TimeStamp.sol": {
-      "lastModificationDate": 1632311179601,
-      "contentHash": "f7f9acbcd617ac6ce461e78ff95883e7",
-      "sourceName": "contracts/TimeStamp.sol",
-      "solcConfig": {
-        "version": "0.8.7",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.7"
-      ],
-      "artifacts": [
-        "Timestamp"
-      ]
-    },
     "/Users/Chitrang.Mevawala/Documents/optilistic/kickstarter-clone/contracts/KickStarterFactory.sol": {
-      "lastModificationDate": 1632423234642,
-      "contentHash": "cc312ba19cd19eb20232f4b50e0af519",
+      "lastModificationDate": 1632498651216,
+      "contentHash": "6a7d3175cce164b5223b02079aba8a59",
       "sourceName": "contracts/KickStarterFactory.sol",
       "solcConfig": {
         "version": "0.8.7",
@@ -129,13 +27,49 @@
           }
         }
       },
-      "imports": [],
+      "imports": [
+        "hardhat/console.sol"
+      ],
       "versionPragmas": [
         "^0.8.7"
       ],
       "artifacts": [
         "KickStarterFactory",
         "Project"
+      ]
+    },
+    "/Users/Chitrang.Mevawala/Documents/optilistic/kickstarter-clone/node_modules/hardhat/console.sol": {
+      "lastModificationDate": 1632197980013,
+      "contentHash": "cc4777addd464ea56fa35b1c45df0591",
+      "sourceName": "hardhat/console.sol",
+      "solcConfig": {
+        "version": "0.8.7",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        ">=0.4.22 <0.9.0"
+      ],
+      "artifacts": [
+        "console"
       ]
     }
   }
