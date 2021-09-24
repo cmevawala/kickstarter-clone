@@ -104,8 +104,8 @@
       ]
     },
     "/Users/Chitrang.Mevawala/Documents/optilistic/kickstarter-clone/contracts/KickStarterFactory.sol": {
-      "lastModificationDate": 1632418224407,
-      "contentHash": "c3b187cc956365aac76a4306c897c190",
+      "lastModificationDate": 1632423234642,
+      "contentHash": "cc312ba19cd19eb20232f4b50e0af519",
       "sourceName": "contracts/KickStarterFactory.sol",
       "solcConfig": {
         "version": "0.8.7",

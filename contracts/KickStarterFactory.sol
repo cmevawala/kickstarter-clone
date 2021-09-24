@@ -8,10 +8,13 @@ pragma solidity ^0.8.7;
 contract KickStarterFactory {
    
     address public owner;
-    uint constant minimumContribution = 0.01 ether;
+    // uint constant minimumContribution = 0.01 ether;
 
     address[] projectContracts;
 
+    constructor() {
+        owner = msg.sender;
+    }
 
     modifier restricted(address _projectAddress) {
         Project projectContract = Project(_projectAddress);
@@ -20,21 +23,23 @@ contract KickStarterFactory {
         _;
     }
 
+    // Function to receive Ether. msg.data must be empty
+    receive() external payable {}
 
-    function createProject(string memory name, uint amount) public {
-        address newProjectAddress = address(new Project(name, amount, msg.sender));
-        projectContracts.push(newProjectAddress);
+    function getBalance() public view returns (uint) {
+        return address(this).balance;
     }
 
-    function getDeployedProjects() public view returns (address[] memory) {
-        return projectContracts;
+    // Create Project
+    function createProject(string memory name, uint goal) public returns (address) {
+        Project newProject = new Project(name, goal, msg.sender);
+
+        projectContracts.push(address(newProject));
+
+        return address(newProject);
     }
 
-    function getDeployedProject(address _projectAddress) public view restricted(_projectAddress) returns (Project) {
-        return Project(_projectAddress);
-    }
-    
-    function contribute(address _projectAddress) public payable returns (string memory) {
+    function contribute(address _projectAddress) public payable {
         // TODO: Hack Reentrace
 
         Project projectContract = Project(_projectAddress);
@@ -49,7 +54,7 @@ contract KickStarterFactory {
         if (projectContract.total() + incommingContribution > projectContract.goal()) {  // 98 + 5 > 100
             incommingContribution = projectContract.goal() - projectContract.total();    // 100 - 98 = 2
             
-            // Send back to contributer/sender : msg.value - incommingContribution;
+            // Send back to contributer/sender : msg.value - incommingContribution;      // 5 - 2 = 3
             uint remainingAmount = msg.value - incommingContribution;
             (bool sent, bytes memory data) = msg.sender.call{value: remainingAmount}("");
             require(sent, "Failed to send Ether");
