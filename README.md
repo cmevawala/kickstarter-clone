@@ -4,7 +4,7 @@
 
 - [X] Creator can create Project 
 - [X] Other people can contribute the Project
-- [X] Assign the Token, whenever the contribution is done based on the defined tiers.
+- [] Assign the Token, whenever the contribution is done based on the defined tiers.
 - [X] Owner of the project can withdraw funds
 - [X] Owner of the project can close and fail the project.
 
