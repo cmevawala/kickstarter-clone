@@ -17,7 +17,7 @@ contract KickStarterFactory {
         owner = msg.sender;
     }
 
-    function createProject(string memory name, uint goal) public returns (address) {
+    function createProject(string memory name, uint goal) external returns (address) {
         Project newProject = new Project(name, goal, msg.sender);
 
         projectContracts.push(address(newProject));
@@ -48,7 +48,7 @@ contract Project {
     address public owner;
     uint public total;
     bool public archive;
-    ProjectContribution[] contributors;
+    ProjectContribution[] contributors; // Remove array and replace it with Map
     
     uint idCounter;
     mapping(uint => address) awards;
@@ -70,11 +70,15 @@ contract Project {
 
     constructor(string memory _name, uint _goal, address _owner) {
         name = _name;
-        goal = _goal;
+        goal = _goal; // Goal should be greater than 0
         created = block.timestamp;
         owner = _owner;
         archive = false;
         total = 0;
+    }
+
+    function getBalance() public view returns (uint) {
+        return address(this).balance;
     }
 
     function contribute() public payable isArchived {
@@ -90,13 +94,11 @@ contract Project {
         // Validate if the goal is already achieved or not
         require(total < goal, 'Goal Achieved! No more funds are accepted.');
 
+        bool refund = false;
         uint incommingContribution = msg.value;
         if (total + incommingContribution > goal) {  // 98 + 5 > 100
             incommingContribution = goal - total;    // 100 - 98 = 2
-            
-            // Send back to contributer/sender : msg.value - incommingContribution;  // 5 - 2 = 3
-            (bool sent,) = msg.sender.call{value: msg.value - incommingContribution}("");
-            require(sent, "Failed to send Ether");
+            refund = true;
         }
 
         contributors.push(ProjectContribution({
@@ -105,6 +107,12 @@ contract Project {
         }));
         
         total += incommingContribution;
+
+        if (refund) {
+            // Send back to contributer/sender : msg.value - incommingContribution;  // 5 - 2 = 3
+            (bool sent,) = msg.sender.call{value: msg.value - incommingContribution}("");
+            require(sent, "Failed to send Ether");
+        }
 
         emit ContributionReceived('Contribution received.');
     }
@@ -159,7 +167,7 @@ contract Project {
         require(block.timestamp > created + 30 days, 'Failed: Project has not completed 30 days');
 
         // Validate if the goal is not met
-        require(total != goal, 'Error! You cannot fail this project as the goal is met');
+        require(total <= goal, 'Error! You cannot fail this project as the goal is met');
 
         archive = true;
         goal = 0;
@@ -170,6 +178,7 @@ contract Project {
     function refund() public payable {
 
         // Return the money back to contributors
+        // This is wrong. Favor pull over push
         for (uint i = 0; i < contributors.length; i++) {
             
             address addr = contributors[i].from;

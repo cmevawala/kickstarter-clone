@@ -2,7 +2,7 @@ const { expect } = require('chai');
 const { BigNumber } = require('ethers');
 const { formatEther, parseEther } = require('ethers/lib/utils');
 
-describe.only('KickStarterFactory contract', function () {
+describe('KickStarterFactory contract', function () {
   let kickStarter;
   let owner;
 
@@ -21,7 +21,7 @@ describe.only('KickStarterFactory contract', function () {
   });
 });
 
-describe.only('KickStarterFactory Project Management', function () {
+describe('KickStarterFactory Project Management', function () {
   let kickStarter;
   let owner;
   let addr1;
@@ -65,72 +65,97 @@ describe.only('KickStarterFactory Project Management', function () {
   });
 
   it('should contribute 100 ETH to the project 1', async function () {
+
+    balance = await project.getBalance();
+    console.log(formatEther(balance.toBigInt()));
+
+    balance = await addr1.getBalance();
+    console.log(formatEther(balance.toBigInt()));
+
+    balance = await addr2.getBalance();
+    console.log(formatEther(balance.toBigInt()));
+
+
     overrides = { gasLimit: 200000, value: parseEther('90') };
     await project.connect(addr1).contribute(overrides);
 
+    balance = await addr1.getBalance();
+    console.log(formatEther(balance.toBigInt()));
+
+    balance = await project.getBalance();
+    console.log(formatEther(balance.toBigInt()));
+
+
     overrides = { ...overrides, value: ethers.utils.parseEther('10') };
     await project.connect(addr2).contribute(overrides);
+
+
+    balance = await addr2.getBalance();
+    console.log(formatEther(balance.toBigInt()));
+
+    balance = await project.getBalance();
+    console.log(formatEther(balance.toBigInt()));
+
 
     expect(formatEther(await project.total())).to.equal('100.0');
   });
 
   it('should withdraw 10% of ETH from the project 1', async function () {
-
     await project.connect(owner).withdraw(10);
     expect(formatEther(await project.total())).to.equal('90.0');
   });
 
-  it('should create and close the project 2', async function () {
+  // it('should create and close the project 2', async function () {
 
-      tx = await kickStarter.createProject('Project 2', parseEther('200'));
+  //     tx = await kickStarter.createProject('Project 2', parseEther('200'));
 
-      txReceipt = await tx.wait();
-      projectAddress = txReceipt.events[0].args[0];
+  //     txReceipt = await tx.wait();
+  //     projectAddress = txReceipt.events[0].args[0];
 
-      Project = await ethers.getContractFactory('Project');
-      project = await Project.attach(projectAddress);
+  //     Project = await ethers.getContractFactory('Project');
+  //     project = await Project.attach(projectAddress);
 
-      overrides = { gasLimit: 200000, value: parseEther('100')};
-      await project.connect(addr3).contribute(overrides);
+  //     overrides = { gasLimit: 200000, value: parseEther('100')};
+  //     await project.connect(addr3).contribute(overrides);
 
-      // const date = new Date();
-      // date.setDate(date.getDate() + 1);
-      // const thirtyDaysFromNow = date.getTime();
+  //     // const date = new Date();
+  //     // date.setDate(date.getDate() + 1);
+  //     // const thirtyDaysFromNow = date.getTime();
 
-      // await network.provider.send("evm_setNextBlockTimestamp", [
-      //   thirtyDaysFromNow,
-      // ]);
-      // await ethers.provider.send("evm_mine");
+  //     // await network.provider.send("evm_setNextBlockTimestamp", [
+  //     //   thirtyDaysFromNow,
+  //     // ]);
+  //     // await ethers.provider.send("evm_mine");
 
-      await project.connect(owner).close();
-      expect(await project.archive()).true;
-  });
+  //     await project.connect(owner).close();
+  //     expect(await project.archive()).true;
+  // });
 
-  it('should fail the project 3', async function () {
+  // it('should fail the project 3', async function () {
 
-      tx = await kickStarter.createProject('Project 3', parseEther('300'));
+  //     tx = await kickStarter.createProject('Project 3', parseEther('300'));
 
-      txReceipt = await tx.wait();
-      projectAddress = txReceipt.events[0].args[0];
+  //     txReceipt = await tx.wait();
+  //     projectAddress = txReceipt.events[0].args[0];
 
-      Project = await ethers.getContractFactory('Project');
-      project = await Project.attach(projectAddress);
+  //     Project = await ethers.getContractFactory('Project');
+  //     project = await Project.attach(projectAddress);
 
-      overrides = { gasLimit: 200000, value: parseEther('100')};
-      await project.connect(addr3).contribute(overrides);
+  //     overrides = { gasLimit: 200000, value: parseEther('100')};
+  //     await project.connect(addr3).contribute(overrides);
 
 
-      const date = new Date();
-      date.setDate(date.getDate() + 1);
-      const thirtyDaysFromNow = date.getTime();
+  //     const date = new Date();
+  //     date.setDate(date.getDate() + 1);
+  //     const thirtyDaysFromNow = date.getTime();
 
-      await network.provider.send("evm_setNextBlockTimestamp", [
-        thirtyDaysFromNow,
-      ]);
-      await ethers.provider.send("evm_mine");
+  //     await network.provider.send("evm_setNextBlockTimestamp", [
+  //       thirtyDaysFromNow,
+  //     ]);
+  //     await ethers.provider.send("evm_mine");
       
 
-      await project.connect(owner).fail();
-      expect(await project.archive()).true;
-  });
+  //     await project.connect(owner).fail();
+  //     expect(await project.archive()).true;
+  // });
 });
