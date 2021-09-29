@@ -18,27 +18,29 @@ contract SpaceCoin is ERC20, Ownable {
     bool private _transferTax = false;
     bool private _pause = false;
     
-    uint phaseLimit = 1500 ether;
-    uint contributionLimit = 150 ether;
+    uint private _phaseLimit = 1500 ether;
+    uint private _contributionLimit = 300 ether;
 
-    Phase _phase = Phase.Seed;
+    Phase private _phase = Phase.Seed;
 
-    mapping(address => uint) private _whiteListedAddress;
-
+    mapping(address => bool) private _whiteListedAddress;
+    mapping(address => uint) private _contributorToAmount;
 
     // Emit events at last
 
     modifier isWhitelisted() {
-        
         if (_phase == Phase.Seed) {
-            require(_whiteListedAddress[msg.sender] > 0, 'Error: Address not in whitelist');
+            require(_whiteListedAddress[msg.sender], 'Error: Address not in whitelist');
         }
         _;
     }
 
     modifier underLimit() {
-        require(msg.value <= contributionLimit, 'Error: More than contribution limit');
-        require(getBalance() <= phaseLimit, 'Error: Phase limit over');
+        if (_phase != Phase.Open) {
+            require(_contributorToAmount[msg.sender] + msg.value <= _contributionLimit, 'Error: More than contribution limit');
+        }
+        
+        require(getBalance() <= _phaseLimit, 'Error: Phase limit over');
         _;
     }
 
@@ -51,17 +53,24 @@ contract SpaceCoin is ERC20, Ownable {
         return address(this).balance;
     }
 
-    function getPhase() public view returns (Phase) {
+    function getPhase() external view returns (Phase) {
         return _phase;
     }
 
+    function getPhaseLimit() external view returns (uint) {
+        return _phaseLimit;
+    }
+
+    function getContributionLimit() external view returns (uint) {
+        return _contributionLimit;
+    }
+
     function setPhase(Phase phase) external onlyOwner {
+        require(phase > _phase, 'Error: Only Forward Phase is allowed');
+
         _phase = phase;
-
-        // console.log(_phase);
-
-        phaseLimit = 3000;
-        contributionLimit = 100;
+        _phaseLimit = 3000 ether;
+        _contributionLimit = 600 ether;
     }
 
     function chargeTax() external onlyOwner {
@@ -69,10 +78,18 @@ contract SpaceCoin is ERC20, Ownable {
     }
 
     function addWhitelisted(address _address) external onlyOwner {
-        _whiteListedAddress[_address]++;
+        _whiteListedAddress[_address] = true;
+        _contributorToAmount[_address] = 0;
     }
 
     function contribute() public payable isWhitelisted underLimit {
+        _contributorToAmount[msg.sender] += msg.value;
+    }
+
+    function tokenTransfer(address _address) public onlyOwner {
+        require(_contributorToAmount[_address] > 0, 'Error: Invalid address');
+        
+        transfer(_address, _contributorToAmount[_address] / 5);
     }
 
 }
