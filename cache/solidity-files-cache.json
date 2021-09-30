@@ -73,8 +73,8 @@
       ]
     },
     "/Users/Chitrang.Mevawala/Documents/optilistic/kickstarter-clone/contracts/SpaceCoin.sol": {
-      "lastModificationDate": 1632910253358,
-      "contentHash": "74a9c5865d215eea9c7920fa17f3413d",
+      "lastModificationDate": 1632940926379,
+      "contentHash": "d50d0e01f41b4eac182ece50a21ab163",
       "sourceName": "contracts/SpaceCoin.sol",
       "solcConfig": {
         "version": "0.8.7",

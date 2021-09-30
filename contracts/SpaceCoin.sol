@@ -89,7 +89,7 @@ contract SpaceCoin is ERC20, Ownable {
     function tokenTransfer(address _address) public onlyOwner {
         require(_contributorToAmount[_address] > 0, 'Error: Invalid address');
         
-        transfer(_address, _contributorToAmount[_address] / 5);
+        transfer(_address, _contributorToAmount[_address] * 5);
     }
 
 }

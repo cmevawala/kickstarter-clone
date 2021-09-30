@@ -241,8 +241,8 @@ describe.only('SpaceCoin Token - Contribution - Open Phase', function () {
    
     expect(formatEther(await spaceCoin.getBalance())).to.equal('1049.99');
 
-    expect(formatEther(await spaceCoin.balanceOf(w1.address))).to.equal('10.0');
-    expect(formatEther(await spaceCoin.balanceOf(w2.address))).to.equal('199.998');
+    expect(formatEther(await spaceCoin.balanceOf(w1.address))).to.equal('250.0');
+    expect(formatEther(await spaceCoin.balanceOf(w2.address))).to.equal('4999.95');
   });
 
   it('release tokens to invalid address', async function () {
